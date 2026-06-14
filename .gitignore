@@ -3,3 +3,7 @@
 node_modules/
 dist/
 .wrangler/
+
+# Local note recovery exports
+recovered-bars-*.json
+recovered-quick-notes-*.json

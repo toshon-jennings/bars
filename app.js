@@ -1,4 +1,12 @@
 const STORAGE_KEY = "idea-tracker:v1";
+const API_KEYS_KEY = "idea-tracker:api-keys:v1";
+const API_PROVIDERS = [
+  { id: "openai", name: "OpenAI", placeholder: "sk-..." },
+  { id: "anthropic", name: "Anthropic", placeholder: "sk-ant-..." },
+  { id: "google", name: "Google AI", placeholder: "AIza..." },
+  { id: "groq", name: "Groq", placeholder: "gsk_..." },
+  { id: "openrouter", name: "OpenRouter", placeholder: "sk-or-..." }
+];
 const quickForm = document.querySelector("#quickForm");
 const quickInput = document.querySelector("#quickInput");
 const quickCount = document.querySelector("#quickCount");
@@ -15,10 +23,28 @@ const writeup = document.querySelector("#writeup");
 const resetButton = document.querySelector("#resetButton");
 const exportButton = document.querySelector("#exportButton");
 const importInput = document.querySelector("#importInput");
+const settingsButton = document.querySelector("#settingsButton");
+const settingsModal = document.querySelector("#settingsModal");
+const settingsForm = document.querySelector("#settingsForm");
+const settingsCloseButton = document.querySelector("#settingsCloseButton");
+const apiKeyFields = document.querySelector("#apiKeyFields");
+const clearApiKeysButton = document.querySelector("#clearApiKeysButton");
+const settingsState = document.querySelector("#settingsState");
+const aiPanel = document.querySelector("#aiPanel");
+const aiStatus = document.querySelector("#aiStatus");
+const aiProviderInput = document.querySelector("#aiProviderInput");
+const aiModelInput = document.querySelector("#aiModelInput");
+const aiRefreshButton = document.querySelector("#aiRefreshButton");
+const aiForm = document.querySelector("#aiForm");
+const aiQuestionInput = document.querySelector("#aiQuestionInput");
+const aiAnswer = document.querySelector("#aiAnswer");
 
 let ideas = loadIdeas();
 let activeId = ideas[0]?.id || null;
 let statusValue = "all";
+let aiProviders = [];
+let selectedProviderId = null;
+let apiKeys = loadApiKeys();
 
 function loadIdeas() {
   try {
@@ -48,6 +74,52 @@ function normalizeIdea(idea) {
 function saveIdeas() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(ideas));
   saveState.textContent = "Saved locally";
+}
+
+function loadApiKeys() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(API_KEYS_KEY) || "{}");
+    return API_PROVIDERS.reduce((keys, provider) => {
+      keys[provider.id] = typeof stored[provider.id] === "string" ? stored[provider.id] : "";
+      return keys;
+    }, {});
+  } catch {
+    return API_PROVIDERS.reduce((keys, provider) => ({ ...keys, [provider.id]: "" }), {});
+  }
+}
+
+function saveApiKeys() {
+  localStorage.setItem(API_KEYS_KEY, JSON.stringify(apiKeys));
+}
+
+function flashSettingsState(message) {
+  settingsState.textContent = message;
+  clearTimeout(flashSettingsState.timer);
+  flashSettingsState.timer = setTimeout(() => {
+    settingsState.textContent = "";
+  }, 2400);
+}
+
+function renderApiKeyFields() {
+  if (!apiKeyFields) return;
+  apiKeyFields.innerHTML = API_PROVIDERS.map((provider) => {
+    const value = apiKeys[provider.id] || "";
+    const status = value ? "Configured" : "Not set";
+    return `
+      <label class="key-field">
+        <span>${escapeHtml(provider.name)}</span>
+        <input
+          name="${escapeHtml(provider.id)}"
+          type="password"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="${escapeHtml(provider.placeholder)}"
+          value="${escapeHtml(value)}"
+        >
+        <small>${status}</small>
+      </label>
+    `;
+  }).join("");
 }
 
 let saveStateTimer;
@@ -85,6 +157,69 @@ function formatRelative(value) {
 
 function dots(value) {
   return "●".repeat(Number(value)) + "○".repeat(5 - Number(value));
+}
+
+function getBarsAI() {
+  return window.barsAI || null;
+}
+
+function getSelectedProvider() {
+  return aiProviders.find((provider) => provider.id === selectedProviderId) || null;
+}
+
+function renderAiProviders() {
+  if (!aiPanel) return;
+  const available = aiProviders.filter((provider) => provider.available);
+  aiProviderInput.innerHTML = available.map((provider) => {
+    return `<option value="${escapeHtml(provider.id)}">${escapeHtml(provider.name)}</option>`;
+  }).join("");
+
+  if (!available.length) {
+    aiProviderInput.innerHTML = "<option>No local model</option>";
+    aiModelInput.innerHTML = "<option>No model detected</option>";
+    aiProviderInput.disabled = true;
+    aiModelInput.disabled = true;
+    aiForm.querySelector("button").disabled = true;
+    aiStatus.textContent = getBarsAI() ? "No local model detected" : "Desktop app required";
+    return;
+  }
+
+  aiProviderInput.disabled = false;
+  aiModelInput.disabled = false;
+  aiForm.querySelector("button").disabled = false;
+  if (!selectedProviderId || !available.some((provider) => provider.id === selectedProviderId)) {
+    selectedProviderId = available[0].id;
+  }
+  aiProviderInput.value = selectedProviderId;
+
+  const provider = getSelectedProvider();
+  const models = provider?.models?.length ? provider.models : ["local-model"];
+  aiModelInput.innerHTML = models.map((model) => {
+    return `<option value="${escapeHtml(model)}">${escapeHtml(model)}</option>`;
+  }).join("");
+  aiStatus.textContent = available.map((provider) => provider.name).join(" + ");
+}
+
+async function detectLocalModels() {
+  if (!aiPanel) return;
+  const barsAI = getBarsAI();
+  if (!barsAI) {
+    aiProviders = [];
+    renderAiProviders();
+    return;
+  }
+
+  aiStatus.textContent = "Detecting local models";
+  aiAnswer.textContent = "";
+  try {
+    const result = await barsAI.detectProviders();
+    aiProviders = result.providers || [];
+    selectedProviderId = result.selectedId || selectedProviderId;
+  } catch (error) {
+    aiProviders = [];
+    aiStatus.textContent = error.message || "Local model detection failed";
+  }
+  renderAiProviders();
 }
 
 function captureStreak() {
@@ -353,6 +488,46 @@ statusChips.addEventListener("click", (event) => {
 
 resetButton.addEventListener("click", clearForm);
 
+if (settingsButton && settingsModal) {
+  settingsButton.addEventListener("click", () => {
+    renderApiKeyFields();
+    settingsModal.showModal();
+    apiKeyFields.querySelector("input")?.focus();
+  });
+}
+
+if (settingsCloseButton && settingsModal) {
+  settingsCloseButton.addEventListener("click", () => settingsModal.close());
+}
+
+if (settingsModal) {
+  settingsModal.addEventListener("click", (event) => {
+    if (event.target === settingsModal) settingsModal.close();
+  });
+}
+
+if (settingsForm) {
+  settingsForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const data = new FormData(settingsForm);
+    API_PROVIDERS.forEach((provider) => {
+      apiKeys[provider.id] = String(data.get(provider.id) || "").trim();
+    });
+    saveApiKeys();
+    renderApiKeyFields();
+    flashSettingsState("Saved keys locally");
+  });
+}
+
+if (clearApiKeysButton) {
+  clearApiKeysButton.addEventListener("click", () => {
+    apiKeys = API_PROVIDERS.reduce((keys, provider) => ({ ...keys, [provider.id]: "" }), {});
+    saveApiKeys();
+    renderApiKeyFields();
+    flashSettingsState("Cleared keys");
+  });
+}
+
 exportButton.addEventListener("click", () => {
   const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), ideas }, null, 2)], {
     type: "application/json"
@@ -367,6 +542,43 @@ exportButton.addEventListener("click", () => {
   setTimeout(() => URL.revokeObjectURL(url), 2000);
   flashSaveState(`Exported ${ideas.length} ${ideas.length === 1 ? "bar" : "bars"} ✓`);
 });
+
+if (aiProviderInput) {
+  aiProviderInput.addEventListener("change", () => {
+    selectedProviderId = aiProviderInput.value;
+    renderAiProviders();
+  });
+}
+
+if (aiRefreshButton) {
+  aiRefreshButton.addEventListener("click", detectLocalModels);
+}
+
+if (aiForm) {
+  aiForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const barsAI = getBarsAI();
+    const question = aiQuestionInput.value.trim();
+    const provider = getSelectedProvider();
+    if (!barsAI || !question || !provider) return;
+
+    aiAnswer.textContent = "Thinking...";
+    aiForm.querySelector("button").disabled = true;
+    try {
+      const result = await barsAI.ask({
+        providerId: provider.id,
+        model: aiModelInput.value,
+        question,
+        ideas
+      });
+      aiAnswer.textContent = result.answer;
+    } catch (error) {
+      aiAnswer.textContent = error.message || "Local model request failed.";
+    } finally {
+      aiForm.querySelector("button").disabled = false;
+    }
+  });
+}
 
 importInput.addEventListener("change", async () => {
   const file = importInput.files[0];
@@ -403,3 +615,5 @@ if ("serviceWorker" in navigator) {
 }
 
 render();
+renderApiKeyFields();
+detectLocalModels();

@@ -6,6 +6,7 @@
     <meta name="theme-color" content="#131009">
     <title>Bars — Idea Notebook</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,6 +23,9 @@
           <p class="tagline">Catch every line before it fades.</p>
         </div>
         <div class="topbar-actions">
+          <button class="icon-button" id="settingsButton" type="button" title="Settings" aria-label="Settings">
+            <span aria-hidden="true">⚙</span>
+          </button>
           <button class="icon-button" id="exportButton" type="button" title="Export bars" aria-label="Export bars">
             <span aria-hidden="true">↓</span>
           </button>
@@ -46,6 +50,25 @@
         <div class="stat"><strong id="statInbox">0</strong><span>in the inbox</span></div>
         <div class="stat"><strong id="statBuilding">0</strong><span>in the works</span></div>
         <div class="stat"><strong id="statStreak">0</strong><span>day streak</span></div>
+      </section>
+
+      <section class="ai-panel" id="aiPanel" aria-labelledby="aiTitle">
+        <div class="section-heading">
+          <div>
+            <h2 id="aiTitle">Ask your bars</h2>
+            <p id="aiStatus">Detecting local models</p>
+          </div>
+          <div class="ai-controls">
+            <select id="aiProviderInput" aria-label="Local model provider"></select>
+            <select id="aiModelInput" aria-label="Local model"></select>
+            <button class="secondary-button" id="aiRefreshButton" type="button">Refresh</button>
+          </div>
+        </div>
+        <form class="ai-form" id="aiForm">
+          <textarea id="aiQuestionInput" rows="2" placeholder="Ask about patterns, next moves, or what is worth building."></textarea>
+          <button class="primary-button" type="submit">Ask</button>
+        </form>
+        <div class="ai-answer" id="aiAnswer" aria-live="polite"></div>
       </section>
 
       <main class="workspace">
@@ -153,6 +176,30 @@
       <option value="Personal"></option>
       <option value="Research"></option>
     </datalist>
+
+    <dialog class="settings-modal" id="settingsModal" aria-labelledby="settingsTitle">
+      <form class="settings-panel" id="settingsForm" method="dialog">
+        <div class="settings-header">
+          <div>
+            <p class="label">Settings</p>
+            <h2 id="settingsTitle">API keys</h2>
+          </div>
+          <button class="icon-button" id="settingsCloseButton" type="button" title="Close settings" aria-label="Close settings">
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+
+        <p class="settings-note">Keys stay in this browser and are not included in bar exports.</p>
+
+        <div class="key-list" id="apiKeyFields"></div>
+
+        <div class="settings-actions">
+          <button class="secondary-button" id="clearApiKeysButton" type="button">Clear keys</button>
+          <span id="settingsState" aria-live="polite"></span>
+          <button class="primary-button" type="submit">Save keys</button>
+        </div>
+      </form>
+    </dialog>
 
     <script src="app.js"></script>
   </body>

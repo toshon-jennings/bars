@@ -4,6 +4,7 @@ Rules for any coding agent (Claude, Codex, Hermes, Antigravity, Copilot, etc.) w
 
 ## Read first
 
+- `SUMMARY.md` — source map, product boundaries, and current implementation notes
 - `HANDOFF.md` — current session state and open tasks
 
 ## Decisions
@@ -26,4 +27,12 @@ The visual identity ("The Rhyme Book" — see `DECISIONS.md`, 2026-06-11) was es
 - Vanilla HTML/CSS/JS, zero dependencies, static-hostable. Keep it that way.
 - All user content rendered via `escapeHtml()` before `innerHTML`.
 - Data lives in localStorage under `idea-tracker:v1`; never change the schema without a migration in `normalizeIdea()`.
-- Bump `CACHE_NAME` in `sw.js` whenever shipped assets change.
+- Service Worker caching was intentionally removed. Do not add caching or a new service worker unless Toshon explicitly asks.
+
+
+## Desktop/mobile boundary
+
+- Desktop Electron is the full AI surface. Local AI detection depends on `window.barsAI` from `electron/preload.cjs`, so it only exists inside Electron.
+- Mobile web is a responsive companion notebook for capture, review, edit, import/export, and Settings. Do not promise mobile local-AI detection.
+- The Settings modal stores hosted-provider API keys, but those keys are not yet wired into hosted AI calls.
+- As of now, the next planned product step is cloud/hosted model integration using the saved Settings keys. Keep that integration deliberately small; do not build a broad provider platform unless Toshon asks.
