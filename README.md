@@ -1,4 +1,4 @@
-# BARS
+# BARS™
 
 A responsive, local-first idea notebook designed for capturing thoughts ("bars") before they fade. Styled with a late-night studio readout aesthetic (warm near-black, gold accents, and a film-grain overlay).
 
