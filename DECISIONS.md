@@ -4,6 +4,23 @@ Milestone decisions for this repo. Append-only; newest first. Each entry: contex
 
 ---
 
+## 2026-06-14 — Settings and mobile scope
+
+**Agent:** Codex (GPT-5)
+
+**Context:** The app gained a Settings modal for common hosted-provider API keys. Toshon wants to ship soon and keep the app simple, and clarified that mobile is not the main development target right now.
+
+**Decision:**
+- Keep Settings as a lightweight credential drawer: OpenAI, Anthropic, Google AI, Groq, and OpenRouter keys are stored in browser localStorage under `idea-tracker:api-keys:v1`.
+- Do not include stored API keys in bar export files.
+- Do not wire hosted AI calls yet. The existing "Ask your bars" flow remains local desktop AI through Electron, LM Studio, and Ollama.
+- As of this decision, the next planned product step is cloud/hosted model integration using the saved Settings keys.
+- Treat mobile web as a responsive companion notebook for capture/review/edit/import/export/Settings, not as a full mobile AI surface.
+
+**Preserve:** Do not add a heavy settings architecture, account system, sync layer, or multi-provider abstraction before it is needed. For the next cloud-model pass, prefer wiring one provider first or a minimal reuse of the saved key map.
+
+---
+
 ## 2026-06-14 — Straighten the "On the page" container & Remove Service Worker Caching
 
 **Agent:** Antigravity (Gemini 3.5 Flash)

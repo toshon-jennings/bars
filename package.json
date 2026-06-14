@@ -1,0 +1,12 @@
+{
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron .",
+    "dev:opal-electron": "/Users/toshonjennings/opal/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron ."
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^33.4.11"
+  },
+  "main": "electron/main.cjs"
+}
