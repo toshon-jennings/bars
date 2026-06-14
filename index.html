@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#131009">
+    <title>Bars — Idea Notebook</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Spline+Sans:wght@400;500;600&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="grain" aria-hidden="true"></div>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <p class="label">The notebook</p>
+          <h1>Bars<span class="cursor-block" aria-hidden="true"></span></h1>
+          <p class="tagline">Catch every line before it fades.</p>
+        </div>
+        <div class="topbar-actions">
+          <button class="icon-button" id="exportButton" type="button" title="Export bars" aria-label="Export bars">
+            <span aria-hidden="true">↓</span>
+          </button>
+          <label class="icon-button" title="Import bars" aria-label="Import bars">
+            <span aria-hidden="true">↑</span>
+            <input id="importInput" type="file" accept="application/json">
+          </label>
+        </div>
+      </header>
+
+      <form id="quickForm" class="capture-bar" aria-label="Quick capture">
+        <span class="rec-dot" aria-hidden="true"></span>
+        <textarea id="quickInput" rows="1" placeholder="Drop a bar — a line, a thought, a maybe..."></textarea>
+        <button class="primary-button" type="submit">Catch it</button>
+        <p class="capture-hint">
+          <span class="kbd">⌘↵</span> to catch it &nbsp;·&nbsp; <span id="quickCount">0 in the inbox</span> &nbsp;·&nbsp; <span id="saveState">Saved locally</span>
+        </p>
+      </form>
+
+      <section class="stats-strip" aria-label="Stats">
+        <div class="stat"><strong id="statTotal">0</strong><span>bars in the book</span></div>
+        <div class="stat"><strong id="statInbox">0</strong><span>in the inbox</span></div>
+        <div class="stat"><strong id="statBuilding">0</strong><span>in the works</span></div>
+        <div class="stat"><strong id="statStreak">0</strong><span>day streak</span></div>
+      </section>
+
+      <main class="workspace">
+        <section class="list-panel" aria-labelledby="ideasTitle">
+          <div class="section-heading">
+            <div>
+              <h2 id="ideasTitle">The book</h2>
+              <p id="ideaCount">0 bars</p>
+            </div>
+            <select id="sortInput" aria-label="Sort bars">
+              <option value="score">Hottest first</option>
+              <option value="updated">Recently updated</option>
+              <option value="created">Recently caught</option>
+            </select>
+          </div>
+
+          <div class="filters">
+            <input id="searchInput" type="search" placeholder="Search bars, notes, tags...">
+            <div class="chip-row" id="statusChips" role="group" aria-label="Filter by status">
+              <button type="button" class="chip is-active" data-status="all">All</button>
+              <button type="button" class="chip" data-status="Inbox">Inbox</button>
+              <button type="button" class="chip" data-status="New">New</button>
+              <button type="button" class="chip" data-status="Exploring">Exploring</button>
+              <button type="button" class="chip" data-status="Building">Building</button>
+              <button type="button" class="chip" data-status="Launched">Launched</button>
+              <button type="button" class="chip" data-status="Archived">Archived</button>
+            </div>
+          </div>
+
+          <div id="ideasList" class="ideas-list" aria-live="polite"></div>
+        </section>
+
+        <aside class="detail-panel" aria-labelledby="detailTitle">
+          <div class="section-heading">
+            <h2 id="detailTitle">On the page</h2>
+            <span id="detailScore">—</span>
+          </div>
+          <div id="detailContent" class="detail-content paper">
+            <p>Pick a bar from the book to put it on the page.</p>
+          </div>
+
+          <details id="writeup" class="writeup">
+            <summary>Write one up properly</summary>
+            <form id="ideaForm" class="idea-form">
+              <label>
+                <span>Title</span>
+                <input id="titleInput" name="title" autocomplete="off" required placeholder="Voice note summary, feature, business idea...">
+              </label>
+
+              <label>
+                <span>Why it matters</span>
+                <textarea id="notesInput" name="notes" rows="5" placeholder="Problem, audience, rough solution, links, objections..."></textarea>
+              </label>
+
+              <div class="form-grid">
+                <label>
+                  <span>Category</span>
+                  <input id="categoryInput" name="category" list="categoryOptions" placeholder="Product">
+                </label>
+                <label>
+                  <span>Status</span>
+                  <select id="statusInput" name="status">
+                    <option>Inbox</option>
+                    <option selected>New</option>
+                    <option>Exploring</option>
+                    <option>Building</option>
+                    <option>Launched</option>
+                    <option>Archived</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Impact</span>
+                  <input id="impactInput" name="impact" type="range" min="1" max="5" value="3">
+                </label>
+                <label>
+                  <span>Effort</span>
+                  <input id="effortInput" name="effort" type="range" min="1" max="5" value="3">
+                </label>
+              </div>
+
+              <label>
+                <span>Next action</span>
+                <input id="nextInput" name="next" autocomplete="off" placeholder="Validate with 3 users, build sketch, price it...">
+              </label>
+
+              <label>
+                <span>Tags</span>
+                <input id="tagsInput" name="tags" autocomplete="off" placeholder="mobile, ai, weekend">
+              </label>
+
+              <div class="form-actions">
+                <button class="primary-button" type="submit">Save it</button>
+                <button class="secondary-button" id="resetButton" type="button">Clear</button>
+              </div>
+            </form>
+          </details>
+        </aside>
+      </main>
+    </div>
+
+    <datalist id="categoryOptions">
+      <option value="Product"></option>
+      <option value="Business"></option>
+      <option value="Content"></option>
+      <option value="Personal"></option>
+      <option value="Research"></option>
+    </datalist>
+
+    <script src="app.js"></script>
+  </body>
+</html>
