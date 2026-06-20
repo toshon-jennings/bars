@@ -4,6 +4,22 @@ Milestone decisions for this repo. Append-only; newest first. Each entry: contex
 
 ---
 
+## 2026-06-14 — Cloud model integration and secure desktop keys
+
+**Agent:** Codex (GPT-5)
+
+**Context:** Toshon wanted the app on GitHub not to feel broken: if Settings accepts API keys, the desktop app should use them. He selected Electron safeStorage over a plaintext env file for persistent desktop key storage.
+
+**Decision:**
+- Store desktop API keys in the Electron user data directory encrypted with `safeStorage`; keep browser localStorage only as a non-desktop fallback.
+- Expose only key status and save/clear IPC methods to the renderer. Provider requests run in `electron/main.cjs`, not in browser UI code.
+- Add configured cloud providers to the existing Ask your bars picker alongside LM Studio, Jan, and Ollama.
+- Make the model field editable with suggestions so users can recover from stale provider model defaults; OpenRouter fetches its live model catalog instead of relying on a tiny hardcoded list.
+
+**Preserve:** Keep this as a small direct integration, not an account system, backend, or provider platform. Do not include keys in bar exports.
+
+---
+
 ## 2026-06-14 — Settings and mobile scope
 
 **Agent:** Codex (GPT-5)

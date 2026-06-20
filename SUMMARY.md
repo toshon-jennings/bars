@@ -6,10 +6,10 @@ Bars is a lightweight, local-first idea notebook for capturing thoughts quickly 
 
 ## Product Boundaries
 
-- Desktop Electron app: full experience, including local AI through LM Studio/Ollama detection.
+- Desktop Electron app: full experience, including local AI through LM Studio, Jan, and Ollama detection and cloud AI through saved API keys.
 - Mobile web: companion notebook only. It should remain usable and responsive, but it does not detect local AI.
-- Settings: stores common hosted-provider API keys locally. These keys are not yet wired into hosted AI calls.
-- Next planned work: integrate cloud/hosted models using the saved Settings keys, while keeping the provider path small.
+- Settings: stores common hosted-provider API keys through Electron safeStorage in desktop mode, with localStorage fallback in browser mode. Keys are not included in bar exports.
+- Cloud AI: desktop provider calls use the saved Settings keys from the Electron main process.
 - Sync: manual import/export today. Automatic cloud sync remains future work.
 
 ## Source Map
@@ -17,7 +17,7 @@ Bars is a lightweight, local-first idea notebook for capturing thoughts quickly 
 - `index.html` — static app shell, topbar actions, capture UI, AI panel, notebook/detail panes, Settings modal.
 - `styles.css` — full visual system and responsive layout. Preserve the "rhyme book" design language from `DECISIONS.md`.
 - `app.js` — localStorage state, idea CRUD, filters, import/export, Settings key storage, local AI UI behavior.
-- `electron/main.cjs` — Electron shell, LM Studio/Ollama provider detection, local model request handlers.
+- `electron/main.cjs` — Electron shell, LM Studio, Jan, and Ollama provider detection, local model request handlers.
 - `electron/preload.cjs` — exposes `window.barsAI` to the renderer. This bridge is desktop-only.
 - `manifest.webmanifest`, `icons/`, `favicon.svg` — install/branding assets.
 - `HANDOFF.md` — current state and open work.
@@ -28,7 +28,7 @@ Bars is a lightweight, local-first idea notebook for capturing thoughts quickly 
 ## Current Implementation Notes
 
 - Ideas live in localStorage under `idea-tracker:v1`.
-- API keys live separately under `idea-tracker:api-keys:v1` and must not be included in bar exports.
+- API keys are encrypted in the Electron user data directory with `safeStorage` in desktop mode. Browser fallback keys live under `idea-tracker:api-keys:v1`. Neither path is included in bar exports.
 - All user-provided content rendered into HTML should pass through `escapeHtml()`.
 - Service Worker caching was intentionally removed; do not reintroduce it unless Toshon explicitly asks.
-- The next planned feature is cloud model integration using the saved API keys. Keep it small: wire one provider first or reuse the saved key map without introducing a heavy settings system.
+- Cloud model integration is intentionally small: configured providers appear in the AI picker, OpenRouter pulls its live model catalog, model names remain editable, and requests run through Electron main so keys are not exposed to provider calls from renderer code.
