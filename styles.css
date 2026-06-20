@@ -376,11 +376,24 @@ h1 {
   justify-content: flex-end;
 }
 
-.ai-controls select {
+.ai-controls select,
+.ai-controls input {
   width: auto;
   min-width: 150px;
   min-height: 38px;
   font-size: 0.84rem;
+}
+
+.ai-controls #aiModelSearchInput {
+  min-width: 190px;
+}
+
+.ai-controls #aiModelInput {
+  min-width: 280px;
+}
+
+.is-hidden {
+  display: none !important;
 }
 
 .ai-form {
@@ -927,6 +940,7 @@ select {
   }
 
   .ai-controls select,
+  .ai-controls input,
   .ai-form .primary-button {
     width: 100%;
   }

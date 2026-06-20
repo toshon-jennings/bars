@@ -1,7 +1,8 @@
 {
   "scripts": {
-    "start": "electron .",
-    "dev": "electron .",
+    "start": "./script/build_and_run.sh",
+    "dev": "./script/build_and_run.sh",
+    "electron:dev": "./script/build_and_run.sh",
     "dev:opal-electron": "/Users/toshonjennings/opal/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron ."
   },
   "dependencies": {},

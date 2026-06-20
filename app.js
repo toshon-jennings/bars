@@ -30,10 +30,13 @@ const settingsCloseButton = document.querySelector("#settingsCloseButton");
 const apiKeyFields = document.querySelector("#apiKeyFields");
 const clearApiKeysButton = document.querySelector("#clearApiKeysButton");
 const settingsState = document.querySelector("#settingsState");
+const settingsNote = document.querySelector("#settingsNote");
 const aiPanel = document.querySelector("#aiPanel");
 const aiStatus = document.querySelector("#aiStatus");
 const aiProviderInput = document.querySelector("#aiProviderInput");
+const aiModelSearchInput = document.querySelector("#aiModelSearchInput");
 const aiModelInput = document.querySelector("#aiModelInput");
+const aiCustomModelInput = document.querySelector("#aiCustomModelInput");
 const aiRefreshButton = document.querySelector("#aiRefreshButton");
 const aiForm = document.querySelector("#aiForm");
 const aiQuestionInput = document.querySelector("#aiQuestionInput");
@@ -44,7 +47,9 @@ let activeId = ideas[0]?.id || null;
 let statusValue = "all";
 let aiProviders = [];
 let selectedProviderId = null;
+let currentModelOptions = [];
 let apiKeys = loadApiKeys();
+let apiKeyStatus = getLocalApiKeyStatus();
 
 function loadIdeas() {
   try {
@@ -92,6 +97,61 @@ function saveApiKeys() {
   localStorage.setItem(API_KEYS_KEY, JSON.stringify(apiKeys));
 }
 
+function emptyApiKeys() {
+  return API_PROVIDERS.reduce((keys, provider) => ({ ...keys, [provider.id]: "" }), {});
+}
+
+function hasDesktopKeyStorage() {
+  const barsAI = getBarsAI();
+  return Boolean(barsAI?.getApiKeyStatus && barsAI?.saveApiKeys && barsAI?.clearApiKeys);
+}
+
+function getLocalApiKeyStatus() {
+  return API_PROVIDERS.reduce((status, provider) => {
+    status[provider.id] = Boolean(apiKeys?.[provider.id]);
+    return status;
+  }, {});
+}
+
+async function refreshApiKeyStatus() {
+  if (!hasDesktopKeyStorage()) {
+    apiKeyStatus = getLocalApiKeyStatus();
+    if (settingsNote) {
+      settingsNote.textContent = "Keys stay in this browser and are not included in bar exports.";
+    }
+    return;
+  }
+
+  try {
+    const status = await getBarsAI().getApiKeyStatus();
+    apiKeyStatus = API_PROVIDERS.reduce((configured, provider) => {
+      configured[provider.id] = Boolean(status.providers?.find((item) => item.id === provider.id)?.configured);
+      return configured;
+    }, {});
+    if (settingsNote) {
+      settingsNote.textContent = status.encrypted
+        ? "Desktop keys are encrypted with Electron safeStorage and are not included in bar exports."
+        : "Secure desktop key storage is unavailable in this session.";
+    }
+  } catch (error) {
+    flashSettingsState(error.message || "Could not read key status");
+  }
+}
+
+async function migrateLocalApiKeysToDesktop() {
+  if (!hasDesktopKeyStorage()) return;
+  const localKeys = loadApiKeys();
+  if (!Object.values(localKeys).some(Boolean)) {
+    await refreshApiKeyStatus();
+    return;
+  }
+
+  await getBarsAI().saveApiKeys(localKeys);
+  localStorage.removeItem(API_KEYS_KEY);
+  apiKeys = emptyApiKeys();
+  await refreshApiKeyStatus();
+}
+
 function flashSettingsState(message) {
   settingsState.textContent = message;
   clearTimeout(flashSettingsState.timer);
@@ -102,9 +162,12 @@ function flashSettingsState(message) {
 
 function renderApiKeyFields() {
   if (!apiKeyFields) return;
+  const desktopStorage = hasDesktopKeyStorage();
   apiKeyFields.innerHTML = API_PROVIDERS.map((provider) => {
-    const value = apiKeys[provider.id] || "";
-    const status = value ? "Configured" : "Not set";
+    const configured = Boolean(apiKeyStatus[provider.id]);
+    const value = desktopStorage ? "" : apiKeys[provider.id] || "";
+    const status = configured ? "Configured" : "Not set";
+    const placeholder = desktopStorage && configured ? "Saved securely - enter a new key to replace" : provider.placeholder;
     return `
       <label class="key-field">
         <span>${escapeHtml(provider.name)}</span>
@@ -113,7 +176,7 @@ function renderApiKeyFields() {
           type="password"
           autocomplete="off"
           spellcheck="false"
-          placeholder="${escapeHtml(provider.placeholder)}"
+          placeholder="${escapeHtml(placeholder)}"
           value="${escapeHtml(value)}"
         >
         <small>${status}</small>
@@ -167,40 +230,95 @@ function getSelectedProvider() {
   return aiProviders.find((provider) => provider.id === selectedProviderId) || null;
 }
 
+function getSelectedModel() {
+  return aiModelInput.value === "__custom" ? aiCustomModelInput.value.trim() : aiModelInput.value;
+}
+
+function setCustomModelVisible(visible) {
+  aiCustomModelInput.classList.toggle("is-hidden", !visible);
+  aiCustomModelInput.disabled = !visible;
+  if (visible) aiCustomModelInput.focus();
+}
+
+function getFilteredModelOptions() {
+  const query = aiModelSearchInput.value.trim().toLowerCase();
+  if (!query) return currentModelOptions;
+  return currentModelOptions.filter((model) => model.toLowerCase().includes(query));
+}
+
+function renderModelOptions(provider, previousModel = getSelectedModel()) {
+  const filteredModels = getFilteredModelOptions();
+  const modelOptions = filteredModels.map((model) => `<option value="${escapeHtml(model)}">${escapeHtml(model)}</option>`);
+  if (provider?.kind === "cloud") {
+    modelOptions.push('<option value="__custom">Custom model...</option>');
+  }
+  aiModelInput.innerHTML = modelOptions.join("") || "<option>No matching models</option>";
+
+  if (provider?.kind === "local") {
+    aiModelInput.value = filteredModels.includes(previousModel) ? previousModel : filteredModels[0] || "";
+    setCustomModelVisible(false);
+    aiForm.querySelector("button").disabled = !filteredModels.length;
+  } else if (previousModel && !filteredModels.includes(previousModel) && !currentModelOptions.includes(previousModel)) {
+    aiModelInput.value = "__custom";
+    aiCustomModelInput.value = previousModel;
+    setCustomModelVisible(true);
+  } else {
+    aiModelInput.value = filteredModels.includes(previousModel)
+      ? previousModel
+      : filteredModels.includes(provider?.defaultModel)
+        ? provider.defaultModel
+        : filteredModels[0] || "__custom";
+    setCustomModelVisible(aiModelInput.value === "__custom");
+  }
+}
+
 function renderAiProviders() {
   if (!aiPanel) return;
-  const available = aiProviders.filter((provider) => provider.available);
-  aiProviderInput.innerHTML = available.map((provider) => {
-    return `<option value="${escapeHtml(provider.id)}">${escapeHtml(provider.name)}</option>`;
+  const visibleProviders = aiProviders.filter((provider) => provider.available || provider.kind === "cloud");
+  aiProviderInput.innerHTML = visibleProviders.map((provider) => {
+    const suffix = provider.kind === "cloud"
+      ? provider.configured ? " - cloud" : " - add key"
+      : " - local";
+    return `<option value="${escapeHtml(provider.id)}">${escapeHtml(provider.name + suffix)}</option>`;
   }).join("");
 
-  if (!available.length) {
-    aiProviderInput.innerHTML = "<option>No local model</option>";
+  if (!visibleProviders.length) {
+    aiProviderInput.innerHTML = "<option>No AI provider configured</option>";
+    aiModelSearchInput.value = "";
     aiModelInput.innerHTML = "<option>No model detected</option>";
+    aiCustomModelInput.value = "";
+    setCustomModelVisible(false);
     aiProviderInput.disabled = true;
     aiModelInput.disabled = true;
     aiForm.querySelector("button").disabled = true;
-    aiStatus.textContent = getBarsAI() ? "No local model detected" : "Desktop app required";
+    aiStatus.textContent = getBarsAI() ? "Add a cloud API key in Settings or start LM Studio, Jan, or Ollama" : "Desktop app required for AI";
     return;
   }
 
   aiProviderInput.disabled = false;
   aiModelInput.disabled = false;
   aiForm.querySelector("button").disabled = false;
-  if (!selectedProviderId || !available.some((provider) => provider.id === selectedProviderId)) {
-    selectedProviderId = available[0].id;
+  if (!selectedProviderId || !visibleProviders.some((provider) => provider.id === selectedProviderId)) {
+    selectedProviderId = visibleProviders.find((provider) => provider.available)?.id || visibleProviders[0].id;
   }
   aiProviderInput.value = selectedProviderId;
 
   const provider = getSelectedProvider();
-  const models = provider?.models?.length ? provider.models : ["local-model"];
-  aiModelInput.innerHTML = models.map((model) => {
-    return `<option value="${escapeHtml(model)}">${escapeHtml(model)}</option>`;
-  }).join("");
-  aiStatus.textContent = available.map((provider) => provider.name).join(" + ");
+  const models = provider?.models?.length
+    ? provider.models
+    : provider?.kind === "cloud"
+      ? [provider?.defaultModel].filter(Boolean)
+      : [];
+  const previousModel = getSelectedModel();
+  currentModelOptions = models;
+  renderModelOptions(provider, previousModel);
+  const readyProviders = visibleProviders.filter((provider) => provider.available).map((provider) => provider.name);
+  aiStatus.textContent = provider?.kind === "cloud" && !provider.configured
+    ? `Add a ${provider.name} API key in Settings to use it.`
+    : readyProviders.length ? readyProviders.join(" + ") : "Start LM Studio, Jan, or Ollama or add a cloud API key in Settings";
 }
 
-async function detectLocalModels() {
+async function detectAiProviders() {
   if (!aiPanel) return;
   const barsAI = getBarsAI();
   if (!barsAI) {
@@ -209,15 +327,21 @@ async function detectLocalModels() {
     return;
   }
 
-  aiStatus.textContent = "Detecting local models";
+  aiStatus.textContent = "Detecting AI providers";
   aiAnswer.textContent = "";
   try {
     const result = await barsAI.detectProviders();
     aiProviders = result.providers || [];
     selectedProviderId = result.selectedId || selectedProviderId;
+    if (result.keyStatus?.providers) {
+      apiKeyStatus = API_PROVIDERS.reduce((configured, provider) => {
+        configured[provider.id] = Boolean(result.keyStatus.providers.find((item) => item.id === provider.id)?.configured);
+        return configured;
+      }, {});
+    }
   } catch (error) {
     aiProviders = [];
-    aiStatus.textContent = error.message || "Local model detection failed";
+    aiStatus.textContent = error.message || "AI provider detection failed";
   }
   renderAiProviders();
 }
@@ -489,7 +613,8 @@ statusChips.addEventListener("click", (event) => {
 resetButton.addEventListener("click", clearForm);
 
 if (settingsButton && settingsModal) {
-  settingsButton.addEventListener("click", () => {
+  settingsButton.addEventListener("click", async () => {
+    await refreshApiKeyStatus();
     renderApiKeyFields();
     settingsModal.showModal();
     apiKeyFields.querySelector("input")?.focus();
@@ -507,24 +632,62 @@ if (settingsModal) {
 }
 
 if (settingsForm) {
-  settingsForm.addEventListener("submit", (event) => {
+  settingsForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const data = new FormData(settingsForm);
+    const incoming = {};
     API_PROVIDERS.forEach((provider) => {
-      apiKeys[provider.id] = String(data.get(provider.id) || "").trim();
+      incoming[provider.id] = String(data.get(provider.id) || "").trim();
     });
-    saveApiKeys();
-    renderApiKeyFields();
-    flashSettingsState("Saved keys locally");
+
+    try {
+      if (hasDesktopKeyStorage()) {
+        if (!Object.values(incoming).some(Boolean)) {
+          flashSettingsState("No new keys entered");
+          return;
+        }
+        const status = await getBarsAI().saveApiKeys(incoming);
+        apiKeyStatus = API_PROVIDERS.reduce((configured, provider) => {
+          configured[provider.id] = Boolean(status.providers?.find((item) => item.id === provider.id)?.configured);
+          return configured;
+        }, {});
+        settingsForm.reset();
+        flashSettingsState("Saved keys securely");
+      } else {
+        apiKeys = incoming;
+        saveApiKeys();
+        apiKeyStatus = getLocalApiKeyStatus();
+        flashSettingsState("Saved keys locally");
+      }
+      renderApiKeyFields();
+      await detectAiProviders();
+    } catch (error) {
+      flashSettingsState(error.message || "Could not save keys");
+    }
   });
 }
 
 if (clearApiKeysButton) {
-  clearApiKeysButton.addEventListener("click", () => {
-    apiKeys = API_PROVIDERS.reduce((keys, provider) => ({ ...keys, [provider.id]: "" }), {});
-    saveApiKeys();
-    renderApiKeyFields();
-    flashSettingsState("Cleared keys");
+  clearApiKeysButton.addEventListener("click", async () => {
+    try {
+      if (hasDesktopKeyStorage()) {
+        const status = await getBarsAI().clearApiKeys();
+        apiKeyStatus = API_PROVIDERS.reduce((configured, provider) => {
+          configured[provider.id] = Boolean(status.providers?.find((item) => item.id === provider.id)?.configured);
+          return configured;
+        }, {});
+      } else {
+        apiKeys = emptyApiKeys();
+        saveApiKeys();
+        apiKeyStatus = getLocalApiKeyStatus();
+      }
+      settingsForm.reset();
+      renderApiKeyFields();
+      await detectAiProviders();
+      flashSettingsState("Cleared keys");
+    } catch (error) {
+      flashSettingsState(error.message || "Could not clear keys");
+    }
   });
 }
 
@@ -546,12 +709,27 @@ exportButton.addEventListener("click", () => {
 if (aiProviderInput) {
   aiProviderInput.addEventListener("change", () => {
     selectedProviderId = aiProviderInput.value;
+    aiModelSearchInput.value = "";
+    aiModelInput.value = "";
+    aiCustomModelInput.value = "";
     renderAiProviders();
   });
 }
 
+if (aiModelSearchInput) {
+  aiModelSearchInput.addEventListener("input", () => {
+    renderModelOptions(getSelectedProvider());
+  });
+}
+
+if (aiModelInput) {
+  aiModelInput.addEventListener("change", () => {
+    setCustomModelVisible(aiModelInput.value === "__custom");
+  });
+}
+
 if (aiRefreshButton) {
-  aiRefreshButton.addEventListener("click", detectLocalModels);
+  aiRefreshButton.addEventListener("click", detectAiProviders);
 }
 
 if (aiForm) {
@@ -567,13 +745,13 @@ if (aiForm) {
     try {
       const result = await barsAI.ask({
         providerId: provider.id,
-        model: aiModelInput.value,
+        model: getSelectedModel(),
         question,
         ideas
       });
       aiAnswer.textContent = result.answer;
     } catch (error) {
-      aiAnswer.textContent = error.message || "Local model request failed.";
+      aiAnswer.textContent = error.message || "AI request failed.";
     } finally {
       aiForm.querySelector("button").disabled = false;
     }
@@ -616,4 +794,6 @@ if ("serviceWorker" in navigator) {
 
 render();
 renderApiKeyFields();
-detectLocalModels();
+migrateLocalApiKeysToDesktop()
+  .catch((error) => flashSettingsState(error.message || "Could not migrate local keys"))
+  .finally(detectAiProviders);

@@ -56,11 +56,13 @@
         <div class="section-heading">
           <div>
             <h2 id="aiTitle">Ask your bars</h2>
-            <p id="aiStatus">Detecting local models</p>
+            <p id="aiStatus">Detecting AI providers</p>
           </div>
           <div class="ai-controls">
-            <select id="aiProviderInput" aria-label="Local model provider"></select>
-            <select id="aiModelInput" aria-label="Local model"></select>
+            <select id="aiProviderInput" aria-label="AI provider"></select>
+            <input id="aiModelSearchInput" autocomplete="off" aria-label="Search AI models" placeholder="Search models">
+            <select id="aiModelInput" aria-label="AI model"></select>
+            <input id="aiCustomModelInput" class="is-hidden" autocomplete="off" aria-label="Custom AI model" placeholder="Custom model ID">
             <button class="secondary-button" id="aiRefreshButton" type="button">Refresh</button>
           </div>
         </div>
@@ -189,7 +191,7 @@
           </button>
         </div>
 
-        <p class="settings-note">Keys stay in this browser and are not included in bar exports.</p>
+        <p class="settings-note" id="settingsNote">In the desktop app, keys are encrypted with Electron safeStorage and are not included in bar exports.</p>
 
         <div class="key-list" id="apiKeyFields"></div>
 
