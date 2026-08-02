@@ -4,6 +4,11 @@ node_modules/
 dist/
 .wrangler/
 
+# Icon build intermediates — build/icon.icns is tracked so `npm run dist`
+# works without cairosvg installed.
+build/icon-1024.png
+build/icon.iconset/
+
 # Local note recovery exports
 recovered-bars-*.json
 recovered-quick-notes-*.json

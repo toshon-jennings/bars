@@ -4,6 +4,42 @@ A responsive, local-first idea notebook designed for capturing thoughts ("bars")
 
 <img width="1280" height="1235" alt="full_page_screenshot" src="https://github.com/user-attachments/assets/930cc96c-fe22-4428-9a31-12b748c0e5e8" />
 
+## Install
+
+### Web and mobile
+
+Open **<https://toshon-jennings.github.io/bars/>** and install it as an app:
+
+- **Chrome / Edge (desktop)** — click the install icon in the address bar
+- **iOS Safari** — Share → Add to Home Screen
+- **Android Chrome** — menu → Add to Home screen
+
+Your book is stored in that browser's `localStorage`, so it lives on that device. There is no offline mode — the app shell needs a connection to load.
+
+### macOS desktop
+
+Download the disk image for your Mac from [Releases](https://github.com/toshon-jennings/bars/releases):
+
+- **Apple Silicon** — `Bars-<version>-arm64.dmg`
+- **Intel** — `Bars-<version>-x64.dmg`
+
+Drag Bars into Applications. The app is **not signed or notarized**, so macOS blocks it the first time ("Bars is damaged and can't be opened"). Clear the quarantine flag once:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/Bars.app
+```
+
+### Build it yourself
+
+Requires macOS:
+
+```bash
+npm install
+npm run dist
+```
+
+Disk images are written to `dist/`. If npm blocks Electron's install script, run `npm install-scripts approve electron` and install again. To regenerate the app icon from `design/icon.svg`, run `npm run icon` (needs `cairosvg`).
+
 ## Product scope
 
 - **Desktop app**: Full experience, including local AI through LM Studio, Jan, and Ollama detection and cloud AI through saved provider keys in Electron.

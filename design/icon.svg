@@ -1,0 +1,15 @@
+<!-- Source for build/icon.icns. The mark is favicon.svg's geometry scaled into
+     the macOS Big Sur icon grid: an 824x824 squircle centred on a 1024 canvas,
+     with the surrounding margin left transparent. Regenerate with:
+
+       cairosvg design/icon.svg -o build/icon-1024.png -W 1024 -H 1024
+       (then sips/iconutil — see script/make_icon.sh)
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <g transform="translate(100,100) scale(12.875)">
+    <rect width="64" height="64" rx="14" fill="#131009"/>
+    <rect x="14" y="15" width="36" height="8" rx="2" fill="#f0b53d"/>
+    <rect x="14" y="28" width="26" height="8" rx="2" fill="#f0b53d"/>
+    <rect x="14" y="41" width="32" height="8" rx="2" fill="#ff6a3d"/>
+  </g>
+</svg>
