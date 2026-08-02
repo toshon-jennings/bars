@@ -2,7 +2,7 @@
 
 A responsive, local-first idea notebook designed for capturing thoughts ("bars") before they fade. Styled with a late-night studio readout aesthetic (warm near-black, gold accents, and a film-grain overlay).
 
-<img width="1280" height="950" alt="full_page_screenshot" src="https://github.com/user-attachments/assets/4dd8e094-626f-48fc-9e4b-77bbe7d67f16" />
+<img width="1280" height="1235" alt="full_page_screenshot" src="https://github.com/user-attachments/assets/930cc96c-fe22-4428-9a31-12b748c0e5e8" />
 
 ## Product scope
 
