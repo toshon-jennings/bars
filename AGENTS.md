@@ -34,5 +34,7 @@ The visual identity ("The Rhyme Book" — see `DECISIONS.md`, 2026-06-11) was es
 
 - Desktop Electron is the full AI surface. Local AI detection depends on `window.barsAI` from `electron/preload.cjs`, so it only exists inside Electron.
 - Mobile web is a responsive companion notebook for capture, review, edit, import/export, and Settings. Do not promise mobile local-AI detection.
-- The Settings modal stores hosted-provider API keys, but those keys are not yet wired into hosted AI calls.
-- As of now, the next planned product step is cloud/hosted model integration using the saved Settings keys. Keep that integration deliberately small; do not build a broad provider platform unless Toshon asks.
+- Hosted/cloud AI is **already wired** (shipped 2026-06-14 — see `DECISIONS.md`). Do not rebuild it. Provider requests for OpenAI, Anthropic, Google AI, Groq, and OpenRouter run in `electron/main.cjs` behind the `bars-ai:ask` IPC handler, and configured providers appear in the "Ask your bars" picker alongside LM Studio, Jan, and Ollama.
+- Because every provider request goes through the main process, **hosted AI is desktop-only too** — not just local detection. `app.js` makes no network calls at all. Mobile web has no AI surface; do not promise one.
+- The Settings modal stores hosted-provider API keys: encrypted with Electron `safeStorage` in the user data directory on desktop, with browser localStorage only as a non-desktop fallback. Never include keys in bar exports.
+- Keep this a small direct integration. Do not add an account system, backend, sync layer, or broad provider abstraction unless Toshon asks.
