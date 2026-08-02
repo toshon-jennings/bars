@@ -2,6 +2,8 @@
 
 A responsive, local-first idea notebook designed for capturing thoughts ("bars") before they fade. Styled with a late-night studio readout aesthetic (warm near-black, gold accents, and a film-grain overlay).
 
+<img width="1280" height="2000" alt="full_page_screenshot" src="https://github.com/user-attachments/assets/2a99cde6-7804-45a6-8de4-c90be03eabea" />
+
 ## Product scope
 
 - **Desktop app**: Full experience, including local AI through LM Studio, Jan, and Ollama detection and cloud AI through saved provider keys in Electron.
