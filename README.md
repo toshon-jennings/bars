@@ -15,6 +15,7 @@ A responsive, local-first idea notebook designed for capturing thoughts ("bars")
 ## Features
 
 - **Quick Capture Hero**: Auto-growing input with `⌘+Enter` shortcut to catch lines instantly into the Inbox.
+- **IdeaBrowser Import**: Paste an IdeaBrowser link — or a whole "Idea of the Day" email — into quick capture and it writes the card for you: title, core thesis, supporting notes, and follow-up angles. Parsed locally, no network call.
 - **Heat Scoring**: Ideas are ranked by "Heat" based on impact/effort metrics.
 - **Collapsible Form**: Turn quick thoughts into fully detailed ideas when you're ready to write them up properly.
 - **Studio Readout Stats**: Track total bars, inbox queue, active builds, and daily capture streaks.

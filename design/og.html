@@ -1,0 +1,260 @@
+<!doctype html>
+<!--
+  Source for og.jpg (1200x630). Not part of the app — regenerate with:
+
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new \
+      --disable-gpu --hide-scrollbars --force-device-scale-factor=2 \
+      --window-size=1200,630 --virtual-time-budget=6000 \
+      --screenshot=og@2x.png "file://$PWD/design/og.html"
+    sips -z 630 1200 og@2x.png --out og-1x.png
+    sips -s format jpeg -s formatOptions 92 og-1x.png --out og.jpg
+
+  Colors and type mirror styles.css — keep them in sync.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Spline+Sans:wght@400;500;600&family=Spline+Sans+Mono:wght@400;500;600&display=block" rel="stylesheet">
+<style>
+  :root {
+    --bg: #131009;
+    --panel: #1c1812;
+    --line: #342c1e;
+    --ink: #f3ead8;
+    --muted: #a4977c;
+    --gold: #f0b53d;
+    --gold-deep: #b9820f;
+    --hot: #ff6a3d;
+    --paper: #f3ead8;
+    --paper-ink: #221d15;
+    --display: "Big Shoulders Display", "Arial Narrow", sans-serif;
+    --mono: "Spline Sans Mono", ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1200px; height: 630px; }
+  body {
+    font-family: "Spline Sans", ui-sans-serif, system-ui, sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(ellipse 90% 70% at 78% -12%, rgba(240, 181, 61, 0.17), transparent 62%),
+      radial-gradient(ellipse 65% 55% at 4% 112%, rgba(255, 106, 61, 0.10), transparent 62%),
+      var(--bg);
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* the focused bar, rendered on cream paper — "on the page" */
+  .paper {
+    width: 470px;
+    align-self: flex-start;
+    padding: 26px 28px 24px;
+    border-radius: 5px;
+    background: linear-gradient(180deg, rgba(185, 130, 15, 0.07), transparent 30%), var(--paper);
+    color: #5d5340;
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.55);
+  }
+  .paper .tag {
+    color: var(--gold-deep);
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+  .paper h3 {
+    margin-top: 10px;
+    color: var(--paper-ink);
+    font-family: var(--display);
+    font-size: 42px;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    line-height: 0.95;
+    text-transform: uppercase;
+  }
+  .paper .note {
+    margin-top: 12px;
+    font-size: 18px;
+    line-height: 1.5;
+  }
+  .paper dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 11px 20px;
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px dashed rgba(34, 29, 21, 0.28);
+    font-size: 16px;
+  }
+  .paper dt {
+    color: var(--paper-ink);
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding-top: 3px;
+  }
+  .paper dd { margin: 0; }
+  .paper .dots {
+    font-size: 15px;
+    letter-spacing: 0.2em;
+    color: var(--gold-deep);
+  }
+
+  /* film grain over everything */
+  .grain {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    pointer-events: none;
+    opacity: 0.075;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .stage {
+    position: relative;
+    z-index: 5;
+    height: 100%;
+    padding: 70px 76px 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 40px;
+  }
+
+  .label {
+    color: var(--gold);
+    font-family: var(--mono);
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    margin-top: 6px;
+    font-family: var(--display);
+    font-size: 208px;
+    font-weight: 900;
+    line-height: 0.88;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+  }
+  .cursor-block {
+    display: inline-block;
+    width: 0.42em;
+    height: 0.72em;
+    margin-left: 0.08em;
+    background: var(--gold);
+  }
+
+  .tagline {
+    margin-top: 12px;
+    color: var(--muted);
+    font-size: 31px;
+    letter-spacing: 0.005em;
+  }
+
+  .capture-bar {
+    margin-top: auto;
+    margin-bottom: 26px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+    padding: 22px 22px 22px 28px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: linear-gradient(180deg, rgba(240, 181, 61, 0.045), transparent 60%), var(--panel);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  }
+  .rec-dot {
+    flex: 0 0 auto;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: var(--hot);
+    box-shadow: 0 0 0 7px rgba(255, 106, 61, 0.14);
+  }
+  .capture-bar p {
+    flex: 1 1 auto;
+    color: var(--muted);
+    font-size: 24px;
+  }
+  .pill {
+    flex: 0 0 auto;
+    padding: 12px 26px;
+    border-radius: 11px;
+    background: var(--gold);
+    color: #221d15;
+    font-size: 21px;
+    font-weight: 600;
+  }
+
+  .footstrip {
+    margin-bottom: 34px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+  .footstrip s { color: var(--gold); text-decoration: none; }
+
+  .tape {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 7px;
+    background: linear-gradient(90deg, var(--gold) 0%, var(--gold) 38%, var(--hot) 78%, var(--hot) 100%);
+  }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="top">
+      <div class="brand">
+        <p class="label">The notebook</p>
+        <h1>Bars<span class="cursor-block"></span></h1>
+        <p class="tagline">Catch every line before it fades.</p>
+      </div>
+
+      <div class="paper">
+        <p class="tag">Building</p>
+        <h3>Sunday listening session at the shop</h3>
+        <p class="note">Records, no phones, one hour. Tell the regulars and nobody else — small room, loud system.</p>
+        <dl>
+          <dt>Impact</dt><dd class="dots">●●●●○</dd>
+          <dt>Effort</dt><dd class="dots">●●○○○</dd>
+          <dt>Heat</dt><dd>82</dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="capture-bar">
+      <span class="rec-dot"></span>
+      <p>Drop a bar — a line, a thought, a maybe…</p>
+      <span class="pill">Catch it</span>
+    </div>
+
+    <div class="footstrip">
+      <span>Paste an <s>IdeaBrowser</s> link — get the whole card</span>
+    </div>
+  </div>
+
+  <div class="tape" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+</body>
+</html>

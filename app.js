@@ -508,17 +508,19 @@ quickForm.addEventListener("submit", (event) => {
   if (!text) return;
 
   const now = new Date().toISOString();
-  const title = text.length > 70 ? `${text.slice(0, 67)}...` : text;
+  const imported = parseIdeaBrowserBar(text);
   const idea = normalizeIdea({
+    ...(imported || {
+      kind: "Thought",
+      title: text.length > 70 ? `${text.slice(0, 67)}...` : text,
+      notes: text,
+      category: "Quick thought",
+      status: "Inbox",
+      impact: "1",
+      effort: "1",
+      tags: ["quick"]
+    }),
     id: crypto.randomUUID(),
-    kind: "Thought",
-    title,
-    notes: text,
-    category: "Quick thought",
-    status: "Inbox",
-    impact: "1",
-    effort: "1",
-    tags: ["quick"],
     createdAt: now,
     updatedAt: now
   });
