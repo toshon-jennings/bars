@@ -7,3 +7,9 @@ dist/
 # Local note recovery exports
 recovered-bars-*.json
 recovered-quick-notes-*.json
+
+
+# Personal agent working docs — local to the maintainer, not part of the package
+HANDOFF.md
+SUMMARY.md
+HITL.md
