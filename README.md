@@ -6,7 +6,7 @@ A responsive, local-first idea notebook designed for capturing thoughts ("bars")
 
 ## Install
 
-### Web and mobile
+### Web and mobile — start here
 
 Open **<https://toshon-jennings.github.io/bars/>** and install it as an app:
 
@@ -16,29 +16,24 @@ Open **<https://toshon-jennings.github.io/bars/>** and install it as an app:
 
 Your book is stored in that browser's `localStorage`, so it lives on that device. There is no offline mode — the app shell needs a connection to load.
 
-### macOS desktop
+### macOS desktop — build it yourself
 
-Download the disk image for your Mac from [Releases](https://github.com/toshon-jennings/bars/releases):
+The desktop build is the full AI surface: it detects local models through LM Studio, Jan, and Ollama, and runs hosted providers from your saved Settings keys. The web version can't do either.
 
-- **Apple Silicon** — `Bars-<version>-arm64.dmg`
-- **Intel** — `Bars-<version>-x64.dmg`
-
-Drag Bars into Applications. The app is **not signed or notarized**, so macOS blocks it the first time ("Bars is damaged and can't be opened"). Clear the quarantine flag once:
-
-```bash
-xattr -dr com.apple.quarantine /Applications/Bars.app
-```
-
-### Build it yourself
-
-Requires macOS:
+There's no prebuilt download yet — the app isn't code-signed, so building it locally is the honest path. Requires macOS:
 
 ```bash
 npm install
 npm run dist
 ```
 
-Disk images are written to `dist/`. If npm blocks Electron's install script, run `npm install-scripts approve electron` and install again. To regenerate the app icon from `design/icon.svg`, run `npm run icon` (needs `cairosvg`).
+Disk images land in `dist/` — `Bars-<version>-arm64.dmg` for Apple Silicon, `-x64` for Intel. Open the one for your Mac and drag Bars into Applications.
+
+Notes:
+
+- If npm blocks Electron's install script, run `npm install-scripts approve electron` and install again.
+- Builds are unsigned. That's fine for an app you built yourself, but a disk image you hand to someone else will trip Gatekeeper on their machine; they'd need `xattr -dr com.apple.quarantine /Applications/Bars.app`.
+- To regenerate the app icon from `design/icon.svg`, run `npm run icon` (needs `cairosvg`).
 
 ## Product scope
 
