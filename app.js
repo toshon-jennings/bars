@@ -10,6 +10,9 @@ const API_PROVIDERS = [
 const quickForm = document.querySelector("#quickForm");
 const quickInput = document.querySelector("#quickInput");
 const quickCount = document.querySelector("#quickCount");
+const micButton = document.querySelector(".rec-dot");
+micButton.style.cursor = "pointer";
+micButton.title = "Dictate";
 const form = document.querySelector("#ideaForm");
 const ideasList = document.querySelector("#ideasList");
 const detailContent = document.querySelector("#detailContent");
@@ -541,6 +544,70 @@ quickInput.addEventListener("input", () => {
 quickInput.addEventListener("keydown", (event) => {
   if ((event.metaKey || event.ctrlKey) && event.key === "Enter") quickForm.requestSubmit();
 });
+
+if (navigator.mediaDevices && window.barsAI && micButton) {
+  let mediaRecorder = null;
+  let audioChunks = [];
+  let isRecording = false;
+
+  micButton.addEventListener("click", async () => {
+    if (isRecording && mediaRecorder) {
+      mediaRecorder.stop();
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      audioChunks = [];
+      
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunks.push(e.data);
+      };
+
+      mediaRecorder.onstart = () => {
+        isRecording = true;
+        micButton.classList.add("is-recording");
+        micButton.title = "Stop recording...";
+      };
+
+      mediaRecorder.onstop = async () => {
+        isRecording = false;
+        micButton.classList.remove("is-recording");
+        micButton.title = "Dictate";
+        stream.getTracks().forEach(track => track.stop());
+
+        const blob = new Blob(audioChunks, { type: 'audio/webm' });
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = async () => {
+          const base64data = reader.result.split(',')[1];
+          try {
+            const originalText = quickInput.value ? quickInput.value + " " : "";
+            quickInput.value = originalText + "Transcribing...";
+            
+            const text = await window.barsAI.transcribe({ audioBase64: base64data, mimeType: 'audio/webm' });
+            
+            quickInput.value = originalText + text;
+            quickInput.style.height = "auto";
+            quickInput.style.height = `${quickInput.scrollHeight}px`;
+          } catch (err) {
+            console.error("Transcription error", err);
+            const originalText = quickInput.value.replace("Transcribing...", "");
+            quickInput.value = originalText + `[Transcription failed: ${err.message}]`;
+          }
+        };
+      };
+
+      mediaRecorder.start();
+    } catch (err) {
+      console.error("Could not access microphone", err);
+      if (confirm("Microphone access was denied. Would you like to open System Settings to grant access?")) {
+        window.barsAI.openMicrophoneSettings?.();
+      }
+    }
+  });
+}
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();

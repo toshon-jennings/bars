@@ -106,6 +106,14 @@ function createWindow() {
 
   win.loadFile(path.join(ROOT, "index.html"));
 
+  win.webContents.session.setPermissionRequestHandler((webContents, permission, callback) => {
+    if (permission === 'media') {
+      callback(true);
+      return;
+    }
+    callback(false);
+  });
+
   win.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
     return { action: "deny" };
@@ -427,12 +435,48 @@ async function askProvider({ providerId, model, question, ideas }) {
   };
 }
 
+async function transcribeBars(_event, { audioBase64, mimeType }) {
+  const keys = readApiKeys();
+  let key = keys['groq'];
+  let endpoint = "https://api.groq.com/openai/v1/audio/transcriptions";
+  let model = "whisper-large-v3";
+
+  if (!key) {
+    key = keys['openai'];
+    endpoint = "https://api.openai.com/v1/audio/transcriptions";
+    model = "whisper-1";
+  }
+
+  if (!key) throw new Error("Add a Groq or OpenAI API key in Settings for voice transcription. (Groq provides free whisper transcription!)");
+
+  const formData = new FormData();
+  formData.append('model', model);
+  const buffer = Buffer.from(audioBase64, 'base64');
+  const blob = new Blob([buffer], { type: mimeType });
+  formData.append('file', blob, 'audio.webm');
+
+  const payload = await fetchJson(endpoint, {
+    method: "POST",
+    timeoutMs: 60000,
+    headers: {
+      "Authorization": `Bearer ${key}`
+    },
+    body: formData
+  });
+
+  return payload?.text || "";
+}
+
 app.whenReady().then(() => {
   ipcMain.handle("bars-ai:detect", detectProviders);
   ipcMain.handle("bars-ai:ask", (_event, payload) => askProvider(payload));
   ipcMain.handle("bars-ai:get-api-key-status", getApiKeyStatus);
   ipcMain.handle("bars-ai:save-api-keys", (_event, payload) => saveApiKeys(payload));
   ipcMain.handle("bars-ai:clear-api-keys", clearApiKeys);
+  ipcMain.handle("bars-ai:transcribe", transcribeBars);
+  ipcMain.handle("bars-ai:open-mic-settings", () => {
+    require('child_process').exec('open "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone"');
+  });
   createWindow();
 
   app.on("activate", () => {
