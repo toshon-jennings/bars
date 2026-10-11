@@ -15,7 +15,8 @@
     "dev": "./script/build_and_run.sh",
     "electron:dev": "./script/build_and_run.sh",
     "icon": "./script/make_icon.sh",
-    "dist": "electron-builder --mac"
+    "dist": "electron-builder --mac && for dmg in dist/*.dmg; do ./script/fix-dmg-background.sh \"$dmg\"; done",
+    "dmg-background": "python3 script/make_dmg_background.py"
   },
   "dependencies": {},
   "devDependencies": {
@@ -54,7 +55,26 @@
       "identity": null
     },
     "dmg": {
-      "artifactName": "${productName}-${version}-${arch}.dmg"
+      "artifactName": "${productName}-${version}-${arch}.dmg",
+      "background": "build/background.png",
+      "window": {
+        "width": 540,
+        "height": 380
+      },
+      "iconSize": 100,
+      "contents": [
+        {
+          "x": 140,
+          "y": 225,
+          "type": "file"
+        },
+        {
+          "x": 400,
+          "y": 225,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
     }
   },
   "allowScripts": {
