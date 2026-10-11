@@ -5,7 +5,8 @@ const API_PROVIDERS = [
   { id: "anthropic", name: "Anthropic", placeholder: "sk-ant-..." },
   { id: "google", name: "Google AI", placeholder: "AIza..." },
   { id: "groq", name: "Groq", placeholder: "gsk_..." },
-  { id: "openrouter", name: "OpenRouter", placeholder: "sk-or-..." }
+  { id: "openrouter", name: "OpenRouter", placeholder: "sk-or-..." },
+  { id: "deepinfra", name: "DeepInfra", placeholder: "deep-..." }
 ];
 const quickForm = document.querySelector("#quickForm");
 const quickInput = document.querySelector("#quickInput");

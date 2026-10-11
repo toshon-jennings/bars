@@ -86,6 +86,17 @@ const CLOUD_PROVIDERS = [
     chatPath: "https://openrouter.ai/api/v1/chat/completions",
     api: "openai",
     extraHeaders: { "X-Title": "Bars" }
+  },
+  {
+    id: "deepinfra",
+    name: "DeepInfra",
+    kind: "cloud",
+    defaultModel: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+    models: ["meta-llama/Llama-3.3-70B-Instruct-Turbo"],
+    modelsPath: "https://api.deepinfra.com/v1/openai/models",
+    chatPath: "https://api.deepinfra.com/v1/openai/chat/completions",
+    api: "openai",
+    extraHeaders: { "X-Title": "Bars" }
   }
 ];
 

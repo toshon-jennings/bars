@@ -40,7 +40,7 @@ Notes:
 - **Desktop app**: Full experience, including local AI through LM Studio, Jan, and Ollama detection and cloud AI through saved provider keys in Electron.
 - **Mobile web**: Responsive companion notebook for capture, review, edit, import/export, and Settings. Mobile does not detect local desktop AI or run hosted calls.
 - **Settings**: Stores common hosted-provider API keys with Electron safeStorage in desktop mode. Stored keys are not exported with bars.
-- **Cloud AI**: Configured cloud providers appear in Ask your bars. OpenRouter pulls its live model catalog, and model names stay editable so users can paste any valid model ID.
+- **Cloud AI**: Configured cloud providers appear in Ask your bars. OpenRouter and DeepInfra pull their live model catalogs, and model names stay editable so users can paste any valid model ID.
 - **Sync**: Manual import/export today; automatic cloud sync is future work.
 
 ## Features
