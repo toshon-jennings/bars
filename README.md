@@ -35,7 +35,7 @@ Notes:
 - Builds are unsigned. That's fine for an app you built yourself, but a disk image you hand to someone else will trip Gatekeeper on their machine; they'd need `xattr -dr com.apple.quarantine /Applications/Bars.app`.
 - To regenerate the app icon from `design/icon.svg`, run `npm run icon` (needs `cairosvg`).
 
-## Product scope
+## Product Scope
 
 - **Desktop app**: Full experience, including local AI through LM Studio, Jan, and Ollama detection and cloud AI through saved provider keys in Electron.
 - **Mobile web**: Responsive companion notebook for capture, review, edit, import/export, and Settings. Mobile does not detect local desktop AI or run hosted calls.
