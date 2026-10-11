@@ -6,7 +6,7 @@ A responsive, local-first idea notebook designed for capturing thoughts ("bars")
 
 ## Install
 
-### Web and mobile — start here
+### Web & Mobile: Start Here
 
 Open **<https://toshon-jennings.github.io/bars/>** and install it as an app:
 
@@ -16,7 +16,7 @@ Open **<https://toshon-jennings.github.io/bars/>** and install it as an app:
 
 Your book is stored in that browser's `localStorage`, so it lives on that device. There is no offline mode — the app shell needs a connection to load.
 
-### macOS desktop — build it yourself
+### macOS Desktop: Build It Yourself
 
 The desktop build is the full AI surface: it detects local models through LM Studio, Jan, and Ollama, and runs hosted providers from your saved Settings keys. The web version can't do either.
 
