@@ -27,7 +27,7 @@ The visual identity ("The Rhyme Book" — see `DECISIONS.md`, 2026-06-11) was es
 - Vanilla HTML/CSS/JS, zero dependencies, static-hostable. Keep it that way.
 - All user content rendered via `escapeHtml()` before `innerHTML`.
 - Data lives in localStorage under `idea-tracker:v1`; never change the schema without a migration in `normalizeIdea()`.
-- Service Worker caching was intentionally removed. Do not add caching or a new service worker unless Toshon explicitly asks.
+- A caching service worker (`sw.js`) ships since 2026-10-11 (see `DECISIONS.md`). Never call `skipWaiting()` on `install` — new versions wait for the update banner (`SKIP_WAITING` message) so users are never stranded on a stale shell. Keep `CACHE_NAME` in `sw.js` in sync with the `package.json` version (`script/check-sw-version.sh`), and keep `sw.js` out of the electron-builder `files` list.
 
 
 ## Desktop/mobile boundary

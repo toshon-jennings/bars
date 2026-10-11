@@ -961,16 +961,79 @@ importInput.addEventListener("change", async () => {
   importInput.value = "";
 });
 
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.getRegistrations().then((registrations) => {
-    for (const registration of registrations) {
-      registration.unregister().then((bool) => {
-        if (bool) {
-          console.log("Service worker successfully removed.");
-          window.location.reload();
-        }
+let updateRequested = false;
+let refreshing = false;
+
+const UPDATE_BANNER_READY = "New version ready.";
+const UPDATE_BANNER_BLOCKED = "Finish your bar first, then reload.";
+
+function hasPendingChanges() {
+  const textFields = [
+    document.getElementById("quickInput"),
+    document.getElementById("notesInput"),
+    document.getElementById("titleInput"),
+    document.getElementById("aiQuestionInput")
+  ];
+  for (const field of textFields) {
+    if (field && field.value.trim()) return true;
+  }
+  return false;
+}
+
+function showUpdateBanner(worker) {
+  const banner = document.getElementById("updateBanner");
+  if (!banner || !banner.hidden) return;
+  banner.hidden = false;
+  const button = banner.querySelector("button");
+  const message = banner.querySelector(".update-banner-message");
+  if (button) {
+    button.onclick = () => {
+      if (hasPendingChanges()) {
+        if (message) message.textContent = UPDATE_BANNER_BLOCKED;
+        return;
+      }
+      if (message) message.textContent = UPDATE_BANNER_READY;
+      updateRequested = true;
+      worker.postMessage({ type: "SKIP_WAITING" });
+    };
+  }
+}
+
+if ("serviceWorker" in navigator && location.protocol !== "file:") {
+  navigator.serviceWorker
+    .register("sw.js")
+    .then((registration) => {
+      registration.addEventListener("updatefound", () => {
+        const newWorker = registration.installing;
+        if (!newWorker) return;
+        newWorker.addEventListener("statechange", () => {
+          if (
+            newWorker.state === "installed" &&
+            navigator.serviceWorker.controller
+          ) {
+            showUpdateBanner(newWorker);
+          }
+        });
       });
-    }
+
+      if (registration.waiting) {
+        showUpdateBanner(registration.waiting);
+      }
+
+      setInterval(() => {
+        registration.update().catch((error) => {
+          console.error("Service worker update check failed:", error);
+        });
+      }, 60 * 60 * 1000);
+    })
+    .catch((error) => {
+      console.error("Service worker registration failed:", error);
+    });
+
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!updateRequested || refreshing) return;
+    refreshing = true;
+    window.location.reload();
   });
 }
 

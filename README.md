@@ -14,7 +14,7 @@ Open **<https://toshon-jennings.github.io/bars/>** and install it as an app:
 - **iOS Safari** — Share → Add to Home Screen
 - **Android Chrome** — menu → Add to Home screen
 
-Your book is stored in that browser's `localStorage`, so it lives on that device. There is no offline mode — the app shell needs a connection to load.
+Your book is stored in that browser's `localStorage`, so it lives on that device. The app shell keeps working offline after the first visit, and a new version prompts before it reloads.
 
 ### macOS Desktop: Build It Yourself
 

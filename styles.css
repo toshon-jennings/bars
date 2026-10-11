@@ -907,6 +907,49 @@ select {
   padding: 0 14px;
 }
 
+/* ---------- update banner ---------- */
+
+.update-banner {
+  display: none;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+}
+
+.update-banner:not([hidden]) {
+  display: flex;
+}
+
+.update-banner-message {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+}
+
+.update-banner button {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ink);
+  font-weight: 600;
+  transition: transform 0.15s, filter 0.15s;
+}
+
+.update-banner button:hover {
+  transform: translateY(-2px);
+}
+
 /* ---------- write-up form ---------- */
 
 .writeup {
