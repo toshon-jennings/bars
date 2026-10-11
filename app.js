@@ -476,6 +476,118 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+function renderInline(text) {
+  const codes = [];
+  const withoutCode = text.replace(/`([^`\n]+)`/g, (match, code) => {
+    codes.push(`<code>${code}</code>`);
+    return `\u0000${codes.length - 1}\u0000`;
+  });
+  const formatted = withoutCode
+    .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+    .replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/(^|[^\w*])\*([^*\n]+)\*/g, "$1<em>$2</em>");
+  return formatted.replace(/\u0000(\d+)\u0000/g, (match, index) => codes[Number(index)]);
+}
+
+function renderMarkdown(source) {
+  const lines = escapeHtml(source).replace(/\r\n?/g, "\n").split("\n");
+  const html = [];
+  let paragraph = [];
+  let list = null;
+  let inCode = false;
+  let codeLines = [];
+
+  const flushParagraph = () => {
+    if (paragraph.length) {
+      html.push(`<p>${renderInline(paragraph.join(" "))}</p>`);
+      paragraph = [];
+    }
+  };
+
+  const flushList = () => {
+    if (list) {
+      const items = list.items.map((item) => `<li>${renderInline(item)}</li>`).join("");
+      html.push(`<${list.type}>${items}</${list.type}>`);
+      list = null;
+    }
+  };
+
+  const pushListItem = (type, item) => {
+    if (!list || list.type !== type) {
+      flushParagraph();
+      flushList();
+      list = { type, items: [] };
+    }
+    list.items.push(item);
+  };
+
+  for (const line of lines) {
+    if (line.startsWith("```")) {
+      if (inCode) {
+        html.push(`<pre><code>${codeLines.join("\n")}</code></pre>`);
+        codeLines = [];
+        inCode = false;
+      } else {
+        flushParagraph();
+        flushList();
+        inCode = true;
+      }
+      continue;
+    }
+    if (inCode) {
+      codeLines.push(line);
+      continue;
+    }
+    const heading = line.match(/^(#{1,4})\s+(.*)$/);
+    if (heading) {
+      flushParagraph();
+      flushList();
+      html.push(`<h${heading[1].length}>${renderInline(heading[2])}</h${heading[1].length}>`);
+      continue;
+    }
+    if (/^(-{3,}|\*{3,}|_{3,})\s*$/.test(line)) {
+      flushParagraph();
+      flushList();
+      html.push("<hr>");
+      continue;
+    }
+    const quote = line.match(/^&gt;\s?(.*)$/);
+    if (quote) {
+      flushParagraph();
+      flushList();
+      html.push(`<blockquote>${renderInline(quote[1])}</blockquote>`);
+      continue;
+    }
+    const bullet = line.match(/^[-*•]\s+(.*)$/);
+    if (bullet) {
+      pushListItem("ul", bullet[1]);
+      continue;
+    }
+    const ordered = line.match(/^\d+[.)]\s+(.*)$/);
+    if (ordered) {
+      pushListItem("ol", ordered[1]);
+      continue;
+    }
+    if (!line.trim()) {
+      flushParagraph();
+      flushList();
+      continue;
+    }
+    if (list && /^\s+\S/.test(line)) {
+      list.items[list.items.length - 1] += ` ${line.trim()}`;
+      continue;
+    }
+    flushList();
+    paragraph.push(line.trim());
+  }
+  if (inCode) {
+    html.push(`<pre><code>${codeLines.join("\n")}</code></pre>`);
+  }
+  flushParagraph();
+  flushList();
+  return html.join("");
+}
+
 function clearForm() {
   form.reset();
   document.querySelector("#statusInput").value = "New";
@@ -819,7 +931,7 @@ if (aiForm) {
         question,
         ideas
       });
-      aiAnswer.textContent = result.answer;
+      aiAnswer.innerHTML = renderMarkdown(result.answer || "No response text returned.");
     } catch (error) {
       aiAnswer.textContent = error.message || "AI request failed.";
     } finally {
